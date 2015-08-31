@@ -2,12 +2,12 @@ require(data.table)
 ########################################################
 ## read the data #######################################
 ########################################################
-# read the file and store in a data table
+## read the file and store in a data table #############
 fileName <- "car.csv"
 filePath <- file.path("csv", fileName)
 dtRaw <- fread(filePath, na.strings = c("NA", ""))
 
-# take a look
+## take a look #########################################
 head(dtRaw) # Abarth first
 tail(dtRaw) # ZX last
 str(dtRaw) # all characters
@@ -24,11 +24,11 @@ summary(dtRaw) # 132,562 cars. Will do this again after data preprocessing
 ########################################################
 ## data preprocessing ##################################
 ########################################################
-# drop V1
+## drop V1 #############################################
 names(dtRaw)
 dtProcessed <- dtRaw[, !c("V1"), with = F]
 
-# split engine into cylinder and capacity, and drop engine
+## split engine into cylinder and capacity, and drop engine
 SplitAndUnlist <- function(vec, sep = "\\s+", index = 1){
     # a function splits a vector of strings by sep
     # :param: vec: a vector of strings
@@ -42,7 +42,7 @@ dtProcessed <- dtProcessed[, "cylinder" := SplitAndUnlist(dtProcessed$engine, in
 dtProcessed <- dtProcessed[, "capacity" := SplitAndUnlist(dtProcessed$engine, index = 2)]
 dtProcessed <- dtProcessed[, !c("engine"), with = F]
 
-# conver odometre into a number
+## conver odometre into a number #######################
 DollarToNumber <- function(dollar){
     # a function converts dollar into a number
     # :param: dollar (str)
@@ -52,10 +52,14 @@ DollarToNumber <- function(dollar){
 }
 dtProcessed <- dtProcessed[, "odometre" := DollarToNumber(SplitAndUnlist(dtProcessed$odometre, index = 1))]
 
-# replace NA with "Special"
+## replace NA with "Special" ###########################
 dtProcessed$price_type[is.na(dtProcessed$price_type)] <- "Special"
 
-# split title into year, make, and model
+## split title into year, make, and model ##############
 dtProcessed <- dtProcessed[, "year" := SplitAndUnlist(dtProcessed$title, index = 1)]
-
+# read the listMakeCleared.txt
+fileName <- "listMakeCleared.txt"
+filePath <- file.path("listMake", fileName)
+dtListMake <- fread(filePath)
+# 
 
