@@ -20,6 +20,16 @@ def ListMakeParser(dir = os.path.join("listMake", "listMake.txt")):
                     listMake.append(make)
         file.close()
         print listMake
+
+        # file path
+        pathFile = os.path.join("listMake", "listMakeCleared.txt")
+
+        # write the file
+        file = open(pathFile, "w")
+        for item in listMake:
+            file.write("%s\n" % item)
+        file.close()
+
     return listMake
 
 def pageNum(listMake):
@@ -143,5 +153,5 @@ def MainCrawler(is_all_car = False, car_make = "BMW", is_max_page = False, max_p
             print fileName + " is done"
 
 # test run
-MainCrawler(is_all_car = True, is_max_page = True, items_per_page = 24)
-# ListMakeParser()
+# MainCrawler(is_all_car = True, is_max_page = True, items_per_page = 24)
+ListMakeParser()
