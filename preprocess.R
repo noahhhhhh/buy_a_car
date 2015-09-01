@@ -109,6 +109,11 @@ dtProcessed <- dtProcessed[, "model" := ReplaceVecWithVec(dtProcessed$title, dtP
 # remove year, MY\\d+, Manual/Auto, and \\d+x\\d+ from title
 dtProcessed <- dtProcessed[, "model" := gsub("^\\s+|\\s+$", "", gsub("^\\d+|(MY\\d+)|Auto|Manual|(\\dx\\d)", "", dtProcessed$model))]
 
+## 2.6 final clean ##################################
+summary(dtProcessed) # year is not a number because some "" in it
+# drop cars with year = ""
+dtProcessed <- dtProcessed[dtProcessed$year != ""]
+dtProcessed <- dtProcessed[, "year" := as.numeric(dtProcessed$year)]
 # save into a RData file
 fileName <- "dtProcessed.RData"
 filePath <- file.path("RData", fileName)
