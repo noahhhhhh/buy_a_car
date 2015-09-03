@@ -63,7 +63,7 @@ statsMakeYear <- dtProcessed %>%
 
 ## 2.3 group by make, model and year stats ###################
 statsMakeModelYear <- dtProcessed %>%
-    filter(transmission != "Manual" & year >= 2012 & is.na(price) == F & odometre <= 40000) %>%
+    filter(transmission != "Manual" & year >= 2012 & is.na(price) == F & price <= 35000 & odometre <= 40000) %>%
     group_by(make, model, year) %>%
     summarise(meanPrice = round(mean(price, na.rm = T))
               , sdPrice = round(sd(price, na.rm = T))
@@ -77,31 +77,37 @@ statsMakeModelYear <- dtProcessed %>%
 
 ## 2.4 stats of make, model and year by year #################
 statsMakeModelYbyY <- sqldf("select a.make, a.model
-            , a.year as year3, a.meanPrice as price3
+            , a.year as year1, a.meanPrice as price1
             , b.year as year2, b.meanPrice as price2
-            , a.meanPrice - b.meanPrice as diffPrice32
-            , 1 - b.meanPrice/a.meanPrice as percPrice32
-            , c.year as year1, c.meanPrice as price1
-            , b.meanPrice - c.meanPrice as diffPrice21
-            , 1 - c.meanPrice/b.meanPrice as percPrice21
-            , d.year as year0, d.meanPrice as price0
-            , c.meanPrice - d.meanPrice as diffPrice10
-            , 1 - d.meanPrice/c.meanPrice as percPrice10
+            , a.meanPrice - b.meanPrice as diffPrice12
+            , 1 - b.meanPrice/a.meanPrice as percPrice12
+            , c.year as year3, c.meanPrice as price3
+            , b.meanPrice - c.meanPrice as diffPrice23
+            , 1 - c.meanPrice/b.meanPrice as percPrice23
+            , d.year as year4, d.meanPrice as price4
+            , c.meanPrice - d.meanPrice as diffPrice34
+            , 1 - d.meanPrice/c.meanPrice as percPrice34
+            , e.year as year5, e.meanPrice as price5
+            , d.meanPrice - e.meanPrice as diffPrice45
+            , 1 - e.meanPrice/d.meanPrice as percPrice45
             from statsMakeModelYear a
             left join statsMakeModelYear b
             on a.make = b.make and a.model = b.model and a.year = b.year + 1
             left join statsMakeModelYear c
             on b.make = c.make and b.model = c.model and b.year = c.year + 1
             left join statsMakeModelYear d
-            on c.make = d.make and c.model = d.model and c.year = d.year + 1")
+            on c.make = d.make and c.model = d.model and c.year = d.year + 1
+            left join statsMakeModelYear e
+            on d.make = e.make and d.model = e.model and d.year = e.year + 1
+                            ")
 ###################
 ## New Car Value ##
 ###################
 # get all makes and models with 2015 as year3
 statsMakeModelYbyY2015 <- statsMakeModelYbyY %>%
-    filter(year3 == 2015) %>%
+    filter(year1 == 2015) %>%
     mutate(makeModel = paste(make, model)) %>%
-    select(make, model, makeModel, price3, price2, price1, price0)
+    select(make, model, makeModel, price1, price2, price4, price5)
 # melt it for plotting purpose
 meltMakeModelYbyY2015 <- data.table(melt(statsMakeModelYbyY2015, id.vars = c("make", "model", "makeModel")))
     
@@ -124,10 +130,10 @@ PlotDiff(pMake = "Volks")
 # sort by diffPrice
 # get all makes and models with 2015 as year3
 statsDiffValue2014 <- statsMakeModelYbyY %>%
-    filter(year3 == 2014) %>%
+    filter(year1 == 2014) %>%
     mutate(makeModel = paste(make, model)) %>%
     # select(make, model, price3, diffPrice32, diffPrice21, diffPrice10) %>%
-    arrange(diffPrice32, diffPrice21)
+    arrange(diffPrice12, diffPrice23)
 
 
 
