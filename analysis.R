@@ -63,6 +63,7 @@ statsMakeYear <- dtProcessed %>%
 
 ## 2.3 group by make, model and year stats ###################
 statsMakeModelYear <- dtProcessed %>%
+    filter(transmission != "Manual" & year >= 2012 & is.na(price) == F & odometre <= 40000) %>%
     group_by(make, model, year) %>%
     summarise(meanPrice = round(mean(price, na.rm = T))
               , sdPrice = round(sd(price, na.rm = T))
@@ -87,11 +88,11 @@ statsMakeModelYbyY <- sqldf("select a.make, a.model
             , c.meanPrice - d.meanPrice as diffPrice10
             , 1 - d.meanPrice/c.meanPrice as percPrice10
             from statsMakeModelYear a
-            join statsMakeModelYear b
+            left join statsMakeModelYear b
             on a.make = b.make and a.model = b.model and a.year = b.year + 1
-            join statsMakeModelYear c
+            left join statsMakeModelYear c
             on b.make = c.make and b.model = c.model and b.year = c.year + 1
-            join statsMakeModelYear d
+            left join statsMakeModelYear d
             on c.make = d.make and c.model = d.model and c.year = d.year + 1")
 ###################
 ## New Car Value ##
@@ -105,17 +106,28 @@ statsMakeModelYbyY2015 <- statsMakeModelYbyY %>%
 meltMakeModelYbyY2015 <- data.table(melt(statsMakeModelYbyY2015, id.vars = c("make", "model", "makeModel")))
     
 # plot it
-g_Y_by_Y <- ggplot(meltMakeModelYbyY2015["make" == "BMW", ], aes(x = variable, y = value, fill = model))
-g_Y_by_Y <- g_Y_by_Y + geom_bar(stat = "identity", position = "dodge")
-g_Y_by_Y
+PlotDiff <- function(pMake, pModel){
+    if (is.na(pMake) == F){
+        if (is.na(pModel) == F) {
+            g_Y_by_Y <- ggplot(meltMakeModelYbyY2015[grepl(pMake, meltMakeModelYbyY2015$make) & grepl(pModel, meltMakeModelYbyY2015$model)], aes(x = variable, y = value, fill = model))
+        } else {
+            g_Y_by_Y <- ggplot(meltMakeModelYbyY2015[grepl(pMake, meltMakeModelYbyY2015$make)], aes(x = variable, y = value, fill = model))
+        }
+        g_Y_by_Y <- g_Y_by_Y + geom_bar(stat = "identity", position = "dodge")
+        g_Y_by_Y
+    }
+}
+
+PlotDiff(pMake = "Volks")
+
 
 # sort by diffPrice
 # get all makes and models with 2015 as year3
-statsDiffValue2015 <- statsMakeModelYbyY %>%
-    filter(year3 == 2015) %>%
+statsDiffValue2014 <- statsMakeModelYbyY %>%
+    filter(year3 == 2014) %>%
     mutate(makeModel = paste(make, model)) %>%
-    select(make, model, price3, diffPrice32, diffPrice21, diffPrice10) %>%
-    arrange(diffPrice32 + diffPrice21 + diffPrice10)
+    # select(make, model, price3, diffPrice32, diffPrice21, diffPrice10) %>%
+    arrange(diffPrice32, diffPrice21)
 
 
 
