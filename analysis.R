@@ -123,17 +123,16 @@ PlotDiff <- function(pMake, pModel){
         g_Y_by_Y
     }
 }
-
-PlotDiff(pMake = "Volks")
+meltMakeModelYbyY2015[grepl("Volks", meltMakeModelYbyY2015$make) & grepl("E", meltMakeModelYbyY2015$model)]
+PlotDiff(pMake = "Volks", pModel = "E")
 
 
 # sort by diffPrice
 # get all makes and models with 2015 as year3
 statsDiffValue2014 <- statsMakeModelYbyY %>%
     filter(year1 == 2014) %>%
-    mutate(makeModel = paste(make, model)) %>%
-    # select(make, model, price3, diffPrice32, diffPrice21, diffPrice10) %>%
-    arrange(diffPrice12, diffPrice23)
+    select(make, model, price1, diffPrice12, price2, diffPrice23) %>%
+    arrange(diffPrice12)
 
 
 
